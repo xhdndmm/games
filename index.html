@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="一页收集轻量、开源、即点即玩的网页小游戏。" />
+    <title>开源小游戏合集</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="游乐场首页">
+          <span class="brand-mark" aria-hidden="true">+</span>
+          <span>游乐场<span class="brand-dot">.</span></span>
+        </a>
+        <nav class="top-nav" aria-label="主导航">
+          <a class="active" href="#games">游戏库</a>
+          <a href="#about">关于项目</a>
+          <a href="https://github.com/xhdndmm/games" target="_blank" rel="noreferrer">GitHub ↗</a>
+        </nav>
+        <a class="github-button" href="https://github.com/xhdndmm/games/issues" target="_blank" rel="noreferrer">
+          反馈问题 <span aria-hidden="true">↗</span>
+        </a>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="pulse"></span> OPEN SOURCE · PLAY FREE</p>
+            <h1 id="hero-title">今天，玩点<br /><em>简单的。</em></h1>
+            <p class="hero-description">没有下载，没有注册。挑一款喜欢的小游戏，马上开始。</p>
+            <a class="hero-link" href="#games">浏览全部游戏 <span aria-hidden="true">↓</span></a>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="art-ring ring-one"></div>
+            <div class="art-ring ring-two"></div>
+            <div class="art-square square-one">✦</div>
+            <div class="art-square square-two">+</div>
+            <div class="art-label">PLAY<br /><strong>NOW</strong></div>
+          </div>
+        </section>
+
+        <section class="library" id="games" aria-labelledby="library-title">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">THE LIBRARY</p>
+              <h2 id="library-title">游戏库 <span id="game-count">03</span></h2>
+            </div>
+            <div class="search-wrap">
+              <label class="sr-only" for="game-search">搜索游戏</label>
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <input id="game-search" type="search" placeholder="搜索游戏名称或类型" autocomplete="off" />
+              <button id="clear-search" class="clear-search" type="button" aria-label="清除搜索" hidden>×</button>
+              <kbd>/</kbd>
+            </div>
+          </div>
+          <div class="toolbar">
+            <div class="filters" role="group" aria-label="游戏类型筛选">
+              <button class="filter-button active" type="button" data-filter="全部">全部</button>
+              <button class="filter-button" type="button" data-filter="益智">益智</button>
+              <button class="filter-button" type="button" data-filter="街机">街机</button>
+              <button class="filter-button" type="button" data-filter="棋类">棋类</button>
+            </div>
+            <p class="result-note" id="result-note">探索 3 款小游戏</p>
+          </div>
+          <div class="game-grid" id="game-grid"></div>
+          <div class="empty-state" id="empty-state" hidden>
+            <span class="empty-icon">⌕</span>
+            <h3>没有找到这款游戏</h3>
+            <p>换个关键词试试，或者浏览全部游戏。</p>
+            <button id="reset-search" type="button">清除筛选</button>
+          </div>
+        </section>
+
+        <section class="about" id="about" aria-labelledby="about-title">
+          <div>
+            <p class="section-kicker">MADE WITH CARE</p>
+            <h2 id="about-title">小而美，<br />一直保持开放。</h2>
+          </div>
+          <div class="about-copy">
+            <p>这里的每一款游戏都使用纯前端实现，轻量、透明、完全开源。喜欢的话，欢迎在 GitHub 上留下反馈，或者一起做点新的。</p>
+            <a class="text-link" href="https://github.com/xhdndmm/games" target="_blank" rel="noreferrer">
+              查看项目源码 <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>© 2026 喜欢电脑的猫咪</span>
+        <span>MIT License</span>
+      </footer>
+    </div>
+    <script src="index.js"></script>
+  </body>
+</html>
