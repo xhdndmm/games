@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>贪吃蛇 · 游乐场</title>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <main class="game-page">
+      <header class="game-header">
+        <a class="back-link" href="../../index.html">← 返回游戏库</a>
+        <div class="game-title">
+          <span class="title-mark">+</span>
+          <div>
+            <p>PLAYGROUND / 03</p>
+            <h1>贪吃蛇</h1>
+          </div>
+        </div>
+        <button class="restart-button" id="restart" type="button">重新开始</button>
+      </header>
+      <section class="game-layout">
+        <div class="board-wrap">
+          <canvas id="board" width="480" height="480" aria-label="贪吃蛇游戏区域"></canvas>
+          <div class="overlay" id="overlay">
+            <strong id="overlay-title">准备好了吗？</strong>
+            <span id="overlay-copy">按方向键或下方按钮开始</span>
+            <button id="start" type="button">开始游戏</button>
+          </div>
+        </div>
+        <aside class="side-panel">
+          <div class="stat"><span>分数</span><strong id="score">0</strong></div>
+          <div class="stat"><span>最高分</span><strong id="best">0</strong></div>
+          <div class="controls">
+            <span>操作说明</span>
+            <p>方向键 / WASD 移动</p>
+            <p>吃到黄色方块得分</p>
+          </div>
+          <div class="pad" aria-label="触屏方向键">
+            <button data-direction="up" type="button">↑</button>
+            <div>
+              <button data-direction="left" type="button">←</button>
+              <button data-direction="down" type="button">↓</button>
+              <button data-direction="right" type="button">→</button>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+    <script src="./js/game.js"></script>
+  </body>
+</html>

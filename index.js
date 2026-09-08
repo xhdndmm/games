@@ -1,3 +1,4 @@
+//游戏列表库，请在添加/更新游戏时适当修改这里以及readme文件
 const games = [
   {
     title: "俄罗斯方块",
@@ -7,7 +8,7 @@ const games = [
     description: "旋转、排列，让每一行都刚刚好。",
     icon: "▦",
     path: "games/tetris/index.html",
-    available: false,
+    available: true,
   },
   {
     title: "五子棋",
@@ -17,7 +18,7 @@ const games = [
     description: "三分钟学会，下一盘需要一点策略。",
     icon: "◉",
     path: "games/gomoku/index.html",
-    available: false,
+    available: true,
   },
   {
     title: "贪吃蛇",
@@ -27,7 +28,7 @@ const games = [
     description: "吃掉每一个方块，别撞到自己。",
     icon: "⌁",
     path: "games/snake/index.html",
-    available: false,
+    available: true,
   },
 ];
 

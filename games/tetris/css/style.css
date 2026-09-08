@@ -1,0 +1,50 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Noto+Sans+SC:wght@400;700;900&display=swap");
+
+:root {
+  --ink: #18231f;
+  --muted: #718079;
+  --paper: #f7f8f3;
+  --teal: #0e6b62;
+  --coral: #f1745f;
+  --lime: #d8f45c;
+  --line: #dfe5df;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--paper); font-family: "Noto Sans SC", sans-serif; }
+button { font: inherit; cursor: pointer; }
+.game-page { width: min(930px, calc(100% - 36px)); margin: 0 auto; padding: 32px 0 65px; }
+.game-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 27px; border-bottom: 1px solid var(--line); }
+.back-link { color: var(--muted); font-family: Manrope, sans-serif; font-size: 12px; font-weight: 700; text-decoration: none; }
+.back-link:hover { color: var(--coral); }
+.game-title { display: flex; gap: 12px; align-items: center; }
+.title-mark { display: grid; width: 29px; height: 29px; place-items: center; color: var(--ink); background: var(--lime); border-radius: 50%; font-size: 23px; }
+.game-title p { margin: 0 0 2px; color: var(--teal); font-family: Manrope, sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .13em; }
+h1 { margin: 0; font-size: 25px; letter-spacing: -.07em; }
+.restart-button { padding: 10px 15px; color: var(--white, #fff); background: var(--ink); border: 0; border-radius: 4px; font-size: 12px; font-weight: 700; }
+.restart-button:hover { background: var(--teal); }
+.game-layout { display: flex; gap: 50px; justify-content: center; padding-top: 48px; }
+.board-wrap { position: relative; width: 300px; height: 600px; background: #263732; border: 8px solid var(--ink); box-shadow: 14px 14px 0 var(--lime); }
+#board { display: block; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 30px), repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 30px); }
+.overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--white, #fff); background: rgba(24,35,31,.88); text-align: center; }
+.overlay[hidden] { display: none; }
+.overlay strong { font-size: 23px; }
+.overlay span { color: #c1d0ca; font-size: 12px; }
+.overlay button { margin-top: 8px; padding: 11px 22px; color: var(--ink); background: var(--lime); border: 0; border-radius: 3px; font-weight: 800; }
+.side-panel { width: 190px; }
+.stat, .next-box, .controls { padding: 17px 0; border-bottom: 1px solid var(--line); }
+.stat { display: flex; align-items: end; justify-content: space-between; }
+.stat span, .next-box > span, .controls > span { color: var(--muted); font-size: 12px; }
+.stat strong { font-family: Manrope, sans-serif; font-size: 29px; }
+.next-box canvas { display: block; margin: 14px auto 3px; }
+.controls { margin-top: 20px; }
+.controls p { margin: 10px 0 0; color: var(--muted); font-family: Manrope, sans-serif; font-size: 11px; }
+
+@media (max-width: 650px) {
+  .game-page { width: min(100% - 28px, 400px); padding-top: 22px; }
+  .game-header { flex-wrap: wrap; gap: 18px; }
+  .game-title { order: -1; width: 100%; }
+  .game-layout { flex-direction: column; gap: 38px; align-items: center; padding-top: 35px; }
+  .side-panel { display: grid; width: 300px; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+  .next-box, .controls { grid-column: span 2; }
+}

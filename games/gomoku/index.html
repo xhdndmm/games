@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>五子棋 · 游乐场</title>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <main class="game-page">
+      <header class="game-header">
+        <a class="back-link" href="../../index.html">← 返回游戏库</a>
+        <div class="game-title">
+          <span class="title-mark">+</span>
+          <div>
+            <p>PLAYGROUND / 02</p>
+            <h1>五子棋</h1>
+          </div>
+        </div>
+        <button class="restart-button" id="restart" type="button">重新开始</button>
+      </header>
+      <section class="game-layout">
+        <div class="board-area">
+          <div class="status">
+            <span class="turn-dot black" id="turn-dot"></span>
+            <strong id="status">黑方回合</strong>
+            <span id="moves">第 1 手</span>
+          </div>
+          <div class="board-frame">
+            <canvas id="board" width="570" height="570" aria-label="五子棋棋盘"></canvas>
+          </div>
+        </div>
+        <aside class="side-panel">
+          <div class="rules">
+            <span>对局信息</span>
+            <p>黑方先手</p>
+            <p>横、竖、斜线连成五子即可获胜。</p>
+          </div>
+          <div class="legend">
+            <p><i class="black"></i>黑方</p>
+            <p><i class="white"></i>白方</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+    <script src="./js/game.js"></script>
+  </body>
+</html>
