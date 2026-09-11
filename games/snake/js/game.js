@@ -5,8 +5,14 @@ const overlayTitle = document.querySelector("#overlay-title");
 const overlayCopy = document.querySelector("#overlay-copy");
 const scoreElement = document.querySelector("#score");
 const bestElement = document.querySelector("#best");
+const difficultyButtons = document.querySelectorAll(".difficulty-button");
 const cells = 16;
 const cellSize = canvas.width / cells;
+const difficultyConfig = {
+  easy: 180,
+  normal: 125,
+  hard: 90,
+};
 
 let snake;
 let food;
@@ -16,8 +22,21 @@ let score;
 let best = Number(localStorage.getItem("snake-best") || 0);
 let timer;
 let playing = false;
+let currentDifficulty = "normal";
 
 bestElement.textContent = best;
+
+function setDifficulty(level) {
+  currentDifficulty = level;
+  difficultyButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.difficulty === level);
+  });
+
+  if (playing) {
+    clearInterval(timer);
+    timer = setInterval(tick, difficultyConfig[level]);
+  }
+}
 
 function randomFood() {
   let position;
@@ -54,7 +73,7 @@ function startGame() {
   playing = true;
   overlay.hidden = true;
   draw();
-  timer = setInterval(tick, 125);
+  timer = setInterval(tick, difficultyConfig[currentDifficulty]);
 }
 
 function finishGame() {
@@ -111,6 +130,9 @@ function setDirection(name) {
 
 document.querySelector("#start").addEventListener("click", startGame);
 document.querySelector("#restart").addEventListener("click", startGame);
+difficultyButtons.forEach((button) => {
+  button.addEventListener("click", () => setDifficulty(button.dataset.difficulty));
+});
 document.querySelectorAll("[data-direction]").forEach((button) => {
   button.addEventListener("click", () => setDirection(button.dataset.direction));
 });

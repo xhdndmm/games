@@ -33,10 +33,14 @@ h1 { margin: 0; font-size: 25px; letter-spacing: -.07em; }
 .overlay span { color: #c1d0ca; font-size: 12px; }
 .overlay button { margin-top: 8px; padding: 11px 22px; color: var(--ink); background: var(--lime); border: 0; border-radius: 3px; font-weight: 800; }
 .side-panel { width: 190px; }
-.stat, .controls { padding: 17px 0; border-bottom: 1px solid var(--line); }
+.stat, .controls, .difficulty { padding: 17px 0; border-bottom: 1px solid var(--line); }
 .stat { display: flex; align-items: end; justify-content: space-between; }
-.stat span, .controls > span { color: var(--muted); font-size: 12px; }
+.stat span, .controls > span, .difficulty > span { color: var(--muted); font-size: 12px; }
 .stat strong { font-family: Manrope, sans-serif; font-size: 29px; }
+.difficulty { margin-top: 20px; }
+.difficulty-selector { display: flex; gap: 8px; margin-top: 10px; }
+.difficulty-button { flex: 1; padding: 7px 6px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted); font-size: 11px; font-weight: 700; }
+.difficulty-button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
 .controls { margin-top: 20px; }
 .controls p { margin: 10px 0 0; color: var(--muted); font-family: Manrope, sans-serif; font-size: 11px; }
 .pad { display: none; margin-top: 23px; text-align: center; }
@@ -52,5 +56,6 @@ h1 { margin: 0; font-size: 25px; letter-spacing: -.07em; }
   .board-wrap { margin: 0 auto; box-shadow: 8px 8px 0 var(--coral); }
   .side-panel { display: grid; width: 100%; grid-template-columns: 1fr 1fr; gap: 0 24px; padding-top: 30px; }
   .controls { grid-column: span 2; }
+  .difficulty { grid-column: span 2; }
   .pad { display: block; grid-column: span 2; }
 }
