@@ -24,6 +24,7 @@ games/
     audio/
     index.html
 ```
+修改/添加游戏后，不要忘记更新游戏列表
 
 ## 许可证
 [MIT](./LICENSE)
