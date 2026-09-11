@@ -21,10 +21,16 @@
       </header>
       <section class="game-layout">
         <div class="board-area">
-          <div class="status">
-            <span class="turn-dot black" id="turn-dot"></span>
-            <strong id="status">黑方回合</strong>
-            <span id="moves">第 1 手</span>
+          <div class="status-bar">
+            <div class="mode-toggle" aria-label="对战模式">
+              <button class="mode-button active" data-mode="pvp" type="button">双人对战</button>
+              <button class="mode-button" data-mode="ai" type="button">人机对战</button>
+            </div>
+            <div class="status">
+              <span class="turn-dot black" id="turn-dot"></span>
+              <strong id="status">黑方回合</strong>
+              <span id="moves">第 1 手</span>
+            </div>
           </div>
           <div class="board-frame">
             <canvas id="board" width="570" height="570" aria-label="五子棋棋盘"></canvas>
@@ -33,7 +39,7 @@
         <aside class="side-panel">
           <div class="rules">
             <span>对局信息</span>
-            <p>黑方先手</p>
+            <p id="rule-text">黑方先手</p>
             <p>横、竖、斜线连成五子即可获胜。</p>
           </div>
           <div class="legend">

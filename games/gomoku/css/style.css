@@ -26,7 +26,11 @@ h1 { margin: 0; font-size: 25px; letter-spacing: -.07em; }
 .restart-button:hover { background: var(--teal); }
 .game-layout { display: flex; gap: 60px; justify-content: center; padding-top: 45px; }
 .board-area { width: 570px; }
-.status { display: flex; gap: 9px; align-items: center; margin: 0 0 14px; }
+.status-bar { margin: 0 0 14px; }
+.mode-toggle { display: inline-flex; gap: 8px; padding: 4px; margin-bottom: 12px; background: #eef1ec; border-radius: 999px; }
+.mode-button { padding: 8px 12px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; }
+.mode-button.active { background: var(--ink); color: #fff; }
+.status { display: flex; gap: 9px; align-items: center; }
 .status strong { font-size: 14px; }
 .status span:last-child { margin-left: auto; color: var(--muted); font-family: Manrope, sans-serif; font-size: 11px; }
 .turn-dot, .legend i { display: inline-block; width: 15px; height: 15px; border-radius: 50%; }
@@ -47,6 +51,7 @@ h1 { margin: 0; font-size: 25px; letter-spacing: -.07em; }
   .game-title { order: -1; width: 100%; }
   .game-layout { display: block; padding-top: 32px; }
   .board-area { width: 100%; }
+  .mode-toggle { width: 100%; justify-content: center; }
   .board-frame { padding: 8px; box-shadow: 8px 8px 0 var(--lime); }
   .side-panel { display: flex; width: 100%; gap: 30px; padding-top: 35px; }
   .legend { padding-top: 0; }
