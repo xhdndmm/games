@@ -11,6 +11,7 @@ const bestElement = document.querySelector("#best");
 const livesElement = document.querySelector("#lives");
 const weaponElement = document.querySelector("#weapon");
 const shieldElement = document.querySelector("#shield");
+const missilesElement = document.querySelector("#missiles");
 const difficultyButtons = document.querySelectorAll(".difficulty-button");
 
 const width = canvas.width;
@@ -29,14 +30,17 @@ const enemyTypes = [
   { name: "bomber", width: 56, height: 52, hp: 4, points: 60, color: "#8fb6a9", fireEvery: 60 },
 ];
 
-// 道具：火=升火力 / 盾=挡一次击 / 命=加一条命
+// 道具：火=升火力 / 盾=挡一次击 / 命=加一条命 / 导=追踪导弹
 const powerUpTypes = [
   { name: "weapon", label: "火", color: "#d8f45c", text: "#18231f" },
   { name: "shield", label: "盾", color: "#0e6b62", text: "#ffffff" },
   { name: "life", label: "命", color: "#f1745f", text: "#ffffff" },
+  { name: "missile", label: "导", color: "#f7c84b", text: "#18231f" },
 ];
 const maxWeapon = 3;
 const maxLives = 5;
+const maxMissiles = 6;
+const missileCdMax = 75; // 两枚导弹间隔 1.25 秒
 const shieldDuration = 480; // 帧（8 秒）
 const enemyFireAfter = 1800; // 30 秒后敌机开始还击
 
@@ -47,6 +51,9 @@ let particles = [];
 let stars = [];
 let powerUps = [];
 let enemyBullets = [];
+let missiles = [];
+let missileCount = 0;
+let missileCd = 0;
 let score = 0;
 let lives = 3;
 let weaponLevel = 1;
@@ -54,6 +61,7 @@ let shield = 0;
 let powerUpTimer = 240;
 let shownWeapon = 1;
 let shownShield = "—";
+let shownMissiles = 0;
 let best = Number(localStorage.getItem("plane-best") || 0);
 let frameCount = 0;
 let state = "idle"; // idle | running | over
@@ -81,6 +89,9 @@ function resetGame() {
   particles = [];
   powerUps = [];
   enemyBullets = [];
+  missiles = [];
+  missileCount = 0;
+  missileCd = 0;
   score = 0;
   lives = 3;
   weaponLevel = 1;
@@ -106,6 +117,10 @@ function updateHud() {
   if (shieldText !== shownShield) {
     shieldElement.textContent = shieldText;
     shownShield = shieldText;
+  }
+  if (missileCount !== shownMissiles) {
+    missilesElement.textContent = String(missileCount);
+    shownMissiles = missileCount;
   }
 }
 
@@ -221,7 +236,7 @@ function spawnEnemy() {
 // 道具从天而降：火力升级 / 护盾 / 加命
 function spawnPowerUp() {
   const roll = Math.random();
-  let type = roll < 0.45 ? "weapon" : roll < 0.75 ? "shield" : "life";
+  let type = roll < 0.4 ? "weapon" : roll < 0.6 ? "shield" : roll < 0.8 ? "missile" : "life";
   if (type === "life" && lives >= maxLives) type = "weapon";
   powerUps.push({
     x: 24 + Math.random() * (width - 48),
@@ -239,14 +254,32 @@ function applyPowerUp(powerUp) {
     else addScore(50); // 火力已满，折算分数
   } else if (powerUp.type === "shield") {
     shield = shieldDuration;
+  } else if (powerUp.type === "missile") {
+    if (missileCount < maxMissiles) missileCount += 3;
+    else addScore(50); // 导弹已满，折算分数
   } else if (lives < maxLives) {
     lives += 1;
     renderLives();
   } else {
     addScore(100); // 命数已满，折算分数
   }
-  spawnExplosion(powerUp.x, powerUp.y, powerUp.type === "life" ? "#f1745f" : powerUp.type === "shield" ? "#0e6b62" : "#d8f45c", 12);
+  spawnExplosion(powerUp.x, powerUp.y, powerUp.type === "life" ? "#f1745f" : powerUp.type === "shield" ? "#0e6b62" : powerUp.type === "missile" ? "#f7c84b" : "#d8f45c", 12);
   updateHud();
+}
+
+// 距离 (x, y) 最近的屏幕内敌机
+function nearestEnemy(x, y) {
+  let nearest = null;
+  let nearestDist = Infinity;
+  for (const enemy of enemies) {
+    if (enemy.y < -10) continue;
+    const dist = Math.hypot(enemy.x - x, enemy.y - y);
+    if (dist < nearestDist) {
+      nearestDist = dist;
+      nearest = enemy;
+    }
+  }
+  return nearest;
 }
 
 function spawnExplosion(x, y, color, count) {
@@ -369,6 +402,54 @@ function update() {
       applyPowerUp(powerUp);
     }
   }
+
+  // 追踪导弹：有目标时自动齐射（每 1.25 秒一枚）
+  if (missileCount > 0) {
+    if (missileCd > 0) missileCd -= 1;
+    if (missileCd === 0 && enemies.some((enemy) => enemy.y > -10)) {
+      missileCount -= 1;
+      missileCd = missileCdMax;
+      missiles.push({ x: player.x, y: player.y - 20, vx: 0, vy: -5, speed: 5, target: null });
+      updateHud();
+    }
+  }
+  missiles = missiles.filter((missile) => {
+    if (!enemies.includes(missile.target)) missile.target = null;
+    if (!missile.target) missile.target = nearestEnemy(missile.x, missile.y);
+    if (missile.target) {
+      const desired = Math.atan2(missile.target.y - missile.y, missile.target.x - missile.x);
+      const current = Math.atan2(missile.vy, missile.vx);
+      let diff = desired - current;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      const turn = Math.max(-0.09, Math.min(0.09, diff));
+      const next = current + turn;
+      missile.vx = Math.cos(next) * missile.speed;
+      missile.vy = Math.sin(next) * missile.speed;
+    }
+    let hit = false;
+    for (const enemy of [...enemies]) {
+      if (Math.hypot(missile.x - enemy.x, missile.y - enemy.y) < enemy.width / 2 + 10) {
+        enemy.hp -= 4;
+        spawnExplosion(missile.x, missile.y, "#f7c84b", 26);
+        addScore(20);
+        if (enemy.hp <= 0) {
+          enemies.splice(enemies.indexOf(enemy), 1);
+          spawnExplosion(enemy.x, enemy.y, enemy.color, 18);
+          addScore(enemy.points);
+        }
+        hit = true;
+        break;
+      }
+    }
+    if (hit) return false;
+    if (frameCount % 3 === 0) {
+      particles.push({ x: missile.x, y: missile.y, vx: 0, vy: 0.4, life: 12, size: 2.5, color: "#ffffff" });
+    }
+    missile.x += missile.vx;
+    missile.y += missile.vy;
+    return missile.y > -40 && missile.x > -40 && missile.x < width + 40;
+  });
 
   // 后期还击：战斗机直射、轰炸机瞄准玩家
   if (frameCount > enemyFireAfter) {
@@ -512,6 +593,26 @@ function draw() {
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillText(type.label, powerUp.x, powerUp.y + 1);
+  });
+
+  // 追踪导弹
+  missiles.forEach((missile) => {
+    context.save();
+    context.translate(missile.x, missile.y);
+    context.rotate(Math.atan2(missile.vy, missile.vx) + Math.PI / 2);
+    context.fillStyle = "#f7c84b";
+    context.fillRect(-2.5, -8, 5, 14); // 弹体
+    context.beginPath();
+    context.moveTo(-2.5, -8);
+    context.lineTo(0, -13);
+    context.lineTo(2.5, -8);
+    context.closePath();
+    context.fill(); // 弹头
+    context.fillRect(-5, 2, 3, 5);
+    context.fillRect(2, 2, 3, 5); // 尾翼
+    context.fillStyle = "#18231f";
+    context.fillRect(-1, -4, 2, 4); // 弹窗
+    context.restore();
   });
 
   // 敌机
