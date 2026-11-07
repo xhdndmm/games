@@ -30,6 +30,16 @@ const games = [
     path: "games/snake/index.html",
     available: true,
   },
+  {
+    title: "打飞机",
+    englishTitle: "PLANE",
+    category: "街机",
+    tags: ["街机", "射击"],
+    description: "吃道具升火力、放导弹，30 秒后小心敌机还击。",
+    icon: "✈",
+    path: "games/plane/index.html",
+    available: true,
+  },
 ];
 
 const gameGrid = document.querySelector("#game-grid");
@@ -57,7 +67,7 @@ function cardTemplate(game, index) {
       </div>
       <div class="game-content">
         <div class="game-meta">
-          <span>01 / 03</span>
+          <span>${String(index + 1).padStart(2, "0")} / ${String(games.length).padStart(2, "0")}</span>
           <span>${game.available ? "可游玩" : "准备中"}</span>
         </div>
         <h3 class="game-title">${game.title}</h3>

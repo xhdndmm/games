@@ -9,6 +9,7 @@
 - 俄罗斯方块
 - 五子棋
 - 贪吃蛇
+- 打飞机
 
 ## 问题反馈
 [Github Issues](https://github.com/xhdndmm/games/issues)
