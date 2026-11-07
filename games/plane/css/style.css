@@ -206,7 +206,8 @@ h1 {
   color: var(--teal);
 }
 
-.stat.shield strong {
+.stat.shield strong,
+.stat.missiles strong {
   font-size: 21px;
   color: var(--teal);
 }

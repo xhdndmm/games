@@ -37,10 +37,10 @@ const powerUpTypes = [
   { name: "life", label: "命", color: "#f1745f", text: "#ffffff" },
   { name: "missile", label: "导", color: "#f7c84b", text: "#18231f" },
 ];
-const maxWeapon = 3;
+const maxWeapon = 10;
 const maxLives = 5;
-const maxMissiles = 6;
-const missileCdMax = 75; // 两枚导弹间隔 1.25 秒
+const maxMissileLevel = 8;
+const missileVolleyInterval = 300; // 齐射间隔 5 秒（常驻武器，每级 +1 枚）
 const shieldDuration = 480; // 帧（8 秒）
 const enemyFireAfter = 1800; // 30 秒后敌机开始还击
 
@@ -52,7 +52,7 @@ let stars = [];
 let powerUps = [];
 let enemyBullets = [];
 let missiles = [];
-let missileCount = 0;
+let missileLevel = 0;
 let missileCd = 0;
 let score = 0;
 let lives = 3;
@@ -61,7 +61,7 @@ let shield = 0;
 let powerUpTimer = 240;
 let shownWeapon = 1;
 let shownShield = "—";
-let shownMissiles = 0;
+let shownMissiles = "—";
 let best = Number(localStorage.getItem("plane-best") || 0);
 let frameCount = 0;
 let state = "idle"; // idle | running | over
@@ -90,7 +90,7 @@ function resetGame() {
   powerUps = [];
   enemyBullets = [];
   missiles = [];
-  missileCount = 0;
+  missileLevel = 0;
   missileCd = 0;
   score = 0;
   lives = 3;
@@ -118,9 +118,10 @@ function updateHud() {
     shieldElement.textContent = shieldText;
     shownShield = shieldText;
   }
-  if (missileCount !== shownMissiles) {
-    missilesElement.textContent = String(missileCount);
-    shownMissiles = missileCount;
+  const missileText = missileLevel > 0 ? `Lv ${missileLevel}` : "—";
+  if (missileText !== shownMissiles) {
+    missilesElement.textContent = missileText;
+    shownMissiles = missileText;
   }
 }
 
@@ -255,8 +256,8 @@ function applyPowerUp(powerUp) {
   } else if (powerUp.type === "shield") {
     shield = shieldDuration;
   } else if (powerUp.type === "missile") {
-    if (missileCount < maxMissiles) missileCount += 3;
-    else addScore(50); // 导弹已满，折算分数
+    if (missileLevel < maxMissileLevel) missileLevel += 1;
+    else addScore(50); // 导弹已满级，折算分数
   } else if (lives < maxLives) {
     lives += 1;
     renderLives();
@@ -320,13 +321,20 @@ function movePlayer() {
   player.y = Math.max(height * 0.55, Math.min(height - player.height / 2, player.y));
 }
 
-// 火力等级：1=双发 2=三发 3=五发，等级越高射速越快
-const fireRates = [0, 8, 7, 6];
+// 火力等级：1-10 级，等级越高弹道越宽、射速越快
+const fireRates = [0, 8, 7, 7, 6, 6, 6, 5, 5, 5, 4];
 const weaponSpreads = [
   null,
   [-8, 8],
   [-11, 0, 11],
-  [-15, -7, 0, 7, 15],
+  [-14, -5, 5, 14],
+  [-16, -8, 0, 8, 16],
+  [-20, -12, -4, 4, 12, 20],
+  [-21, -14, -7, 0, 7, 14, 21],
+  [-28, -21, -14, -7, 7, 14, 21, 28],
+  [-32, -24, -16, -8, 0, 8, 16, 24, 32],
+  [-35, -28, -21, -14, -7, 7, 14, 21, 28, 35],
+  [-44, -36, -28, -20, -12, -4, 4, 12, 20, 28, 36, 44],
 ];
 
 function fire() {
@@ -385,11 +393,12 @@ function update() {
     }
   }
 
-  // 道具下落与拾取
+  // 道具下落与拾取（分数越高掉落越频繁：基础 4-8s，2000 分时最快 2-4s）
   powerUpTimer -= 1;
   if (powerUpTimer <= 0) {
     spawnPowerUp();
-    powerUpTimer = 240 + Math.random() * 240; // 每 4-8 秒一件
+    const intervalScale = Math.max(0.5, 1 - score / 2000);
+    powerUpTimer = (240 + Math.random() * 240) * intervalScale;
   }
   powerUps.forEach((powerUp) => {
     powerUp.y += 1.6;
@@ -403,13 +412,15 @@ function update() {
     }
   }
 
-  // 追踪导弹：有目标时自动齐射（每 1.25 秒一枚）
-  if (missileCount > 0) {
+  // 追踪导弹（常驻武器）：每 5 秒齐射一次，数量 = 导弹等级
+  if (missileLevel > 0) {
     if (missileCd > 0) missileCd -= 1;
     if (missileCd === 0 && enemies.some((enemy) => enemy.y > -10)) {
-      missileCount -= 1;
-      missileCd = missileCdMax;
-      missiles.push({ x: player.x, y: player.y - 20, vx: 0, vy: -5, speed: 5, target: null });
+      missileCd = missileVolleyInterval;
+      for (let i = 0; i < missileLevel; i += 1) {
+        const spread = missileLevel > 1 ? (i - (missileLevel - 1) / 2) * 14 : 0;
+        missiles.push({ x: player.x + spread, y: player.y - 20, vx: 0, vy: -5, speed: 5, target: null });
+      }
       updateHud();
     }
   }
