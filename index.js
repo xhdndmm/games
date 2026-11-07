@@ -35,7 +35,7 @@ const games = [
     englishTitle: "PLANE",
     category: "街机",
     tags: ["街机", "射击"],
-    description: "吃道具升火力、放导弹，30 秒后小心敌机还击。",
+    description: "吃道具把火力刷到 10 级、导弹齐射，30 秒后小心敌机还击。",
     icon: "✈",
     path: "games/plane/index.html",
     available: true,
