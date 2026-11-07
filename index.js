@@ -35,7 +35,7 @@ const games = [
     englishTitle: "PLANE",
     category: "街机",
     tags: ["街机", "射击"],
-    description: "自动开火，击落一波又一波敌机。",
+    description: "吃道具升火力，30 秒后小心敌机还击。",
     icon: "✈",
     path: "games/plane/index.html",
     available: true,

@@ -206,6 +206,11 @@ h1 {
   color: var(--teal);
 }
 
+.stat.shield strong {
+  font-size: 21px;
+  color: var(--teal);
+}
+
 .difficulty {
   margin-top: 20px;
 }

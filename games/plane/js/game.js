@@ -9,31 +9,51 @@ const restartButton = document.querySelector("#restart");
 const scoreElement = document.querySelector("#score");
 const bestElement = document.querySelector("#best");
 const livesElement = document.querySelector("#lives");
+const weaponElement = document.querySelector("#weapon");
+const shieldElement = document.querySelector("#shield");
 const difficultyButtons = document.querySelectorAll(".difficulty-button");
 
 const width = canvas.width;
 const height = canvas.height;
 
-// 难度参数：敌机生成间隔(帧)、敌机速度、同时存活上限
+// 难度参数：敌机生成间隔(帧)、敌机速度、同时存活上限、敌弹速度
 const difficultyConfig = {
-  easy: { spawnEvery: 55, speed: 1.6, maxEnemies: 6 },
-  normal: { spawnEvery: 40, speed: 2.2, maxEnemies: 9 },
-  hard: { spawnEvery: 26, speed: 3.0, maxEnemies: 14 },
+  easy: { spawnEvery: 55, speed: 1.6, maxEnemies: 6, enemyBulletSpeed: 2.8 },
+  normal: { spawnEvery: 40, speed: 2.2, maxEnemies: 9, enemyBulletSpeed: 3.6 },
+  hard: { spawnEvery: 26, speed: 3.0, maxEnemies: 14, enemyBulletSpeed: 4.4 },
 };
 
 const enemyTypes = [
   { name: "scout", width: 34, height: 30, hp: 1, points: 10, color: "#f1745f" },
-  { name: "fighter", width: 42, height: 38, hp: 2, points: 25, color: "#f7c84b" },
-  { name: "bomber", width: 56, height: 52, hp: 4, points: 60, color: "#8fb6a9" },
+  { name: "fighter", width: 42, height: 38, hp: 2, points: 25, color: "#f7c84b", fireEvery: 95 },
+  { name: "bomber", width: 56, height: 52, hp: 4, points: 60, color: "#8fb6a9", fireEvery: 60 },
 ];
+
+// 道具：火=升火力 / 盾=挡一次击 / 命=加一条命
+const powerUpTypes = [
+  { name: "weapon", label: "火", color: "#d8f45c", text: "#18231f" },
+  { name: "shield", label: "盾", color: "#0e6b62", text: "#ffffff" },
+  { name: "life", label: "命", color: "#f1745f", text: "#ffffff" },
+];
+const maxWeapon = 3;
+const maxLives = 5;
+const shieldDuration = 480; // 帧（8 秒）
+const enemyFireAfter = 1800; // 30 秒后敌机开始还击
 
 let player;
 let bullets = [];
 let enemies = [];
 let particles = [];
 let stars = [];
+let powerUps = [];
+let enemyBullets = [];
 let score = 0;
 let lives = 3;
+let weaponLevel = 1;
+let shield = 0;
+let powerUpTimer = 240;
+let shownWeapon = 1;
+let shownShield = "—";
 let best = Number(localStorage.getItem("plane-best") || 0);
 let frameCount = 0;
 let state = "idle"; // idle | running | over
@@ -59,16 +79,44 @@ function resetGame() {
   bullets = [];
   enemies = [];
   particles = [];
+  powerUps = [];
+  enemyBullets = [];
   score = 0;
   lives = 3;
+  weaponLevel = 1;
+  shield = 0;
+  powerUpTimer = 240;
   frameCount = 0;
   invincible = 0;
   scoreElement.textContent = "0";
   renderLives();
+  updateHud();
 }
 
 function renderLives() {
   livesElement.textContent = "✈ ".repeat(Math.max(lives, 0)).trim() || "—";
+}
+
+function updateHud() {
+  if (weaponLevel !== shownWeapon) {
+    weaponElement.textContent = String(weaponLevel);
+    shownWeapon = weaponLevel;
+  }
+  const shieldText = shield > 0 ? `${Math.ceil(shield / 60)}s` : "—";
+  if (shieldText !== shownShield) {
+    shieldElement.textContent = shieldText;
+    shownShield = shieldText;
+  }
+}
+
+function addScore(amount) {
+  score += amount;
+  scoreElement.textContent = String(score);
+  if (score > best) {
+    best = score;
+    bestElement.textContent = String(best);
+    localStorage.setItem("plane-best", String(best));
+  }
 }
 
 function setDifficulty(level) {
@@ -154,6 +202,7 @@ function spawnEnemy() {
   const type = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
   const hpMultiplier = currentDifficulty === "hard" ? 1.5 : 1;
   enemies.push({
+    name: type.name,
     x: type.width / 2 + Math.random() * (width - type.width),
     y: -type.height,
     width: type.width,
@@ -164,7 +213,40 @@ function spawnEnemy() {
     color: type.color,
     speed: type.name === "bomber" ? config.speed * 0.6 : config.speed * (0.9 + Math.random() * 0.5),
     wobble: type.name === "scout" ? Math.random() * Math.PI * 2 : 0,
+    fireEvery: type.fireEvery || 0,
+    fireCd: type.fireEvery ? type.fireEvery * (0.5 + Math.random() * 0.7) : 0,
   });
+}
+
+// 道具从天而降：火力升级 / 护盾 / 加命
+function spawnPowerUp() {
+  const roll = Math.random();
+  let type = roll < 0.45 ? "weapon" : roll < 0.75 ? "shield" : "life";
+  if (type === "life" && lives >= maxLives) type = "weapon";
+  powerUps.push({
+    x: 24 + Math.random() * (width - 48),
+    y: -20,
+    width: 28,
+    height: 28,
+    type,
+    phase: Math.random() * Math.PI * 2,
+  });
+}
+
+function applyPowerUp(powerUp) {
+  if (powerUp.type === "weapon") {
+    if (weaponLevel < maxWeapon) weaponLevel += 1;
+    else addScore(50); // 火力已满，折算分数
+  } else if (powerUp.type === "shield") {
+    shield = shieldDuration;
+  } else if (lives < maxLives) {
+    lives += 1;
+    renderLives();
+  } else {
+    addScore(100); // 命数已满，折算分数
+  }
+  spawnExplosion(powerUp.x, powerUp.y, powerUp.type === "life" ? "#f1745f" : powerUp.type === "shield" ? "#0e6b62" : "#d8f45c", 12);
+  updateHud();
 }
 
 function spawnExplosion(x, y, color, count) {
@@ -205,9 +287,19 @@ function movePlayer() {
   player.y = Math.max(height * 0.55, Math.min(height - player.height / 2, player.y));
 }
 
+// 火力等级：1=双发 2=三发 3=五发，等级越高射速越快
+const fireRates = [0, 8, 7, 6];
+const weaponSpreads = [
+  null,
+  [-8, 8],
+  [-11, 0, 11],
+  [-15, -7, 0, 7, 15],
+];
+
 function fire() {
-  bullets.push({ x: player.x - 8, y: player.y - 18, width: 3, height: 12 });
-  bullets.push({ x: player.x + 8, y: player.y - 18, width: 3, height: 12 });
+  weaponSpreads[weaponLevel].forEach((offset) => {
+    bullets.push({ x: player.x + offset, y: player.y - 18, width: 3, height: 12, vx: 0 });
+  });
 }
 
 function collides(a, b) {
@@ -223,10 +315,11 @@ function update() {
 
   movePlayer();
 
-  if (frameCount % 8 === 0) fire();
+  if (frameCount % fireRates[weaponLevel] === 0) fire();
   bullets = bullets.filter((bullet) => {
+    bullet.x += bullet.vx || 0;
     bullet.y -= 8;
-    return bullet.y > -20;
+    return bullet.y > -20 && bullet.x > -20 && bullet.x < width + 20;
   });
 
   if (frameCount % config.spawnEvery === 0) spawnEnemy();
@@ -252,35 +345,98 @@ function update() {
         if (enemy.hp <= 0) {
           enemies.splice(enemies.indexOf(enemy), 1);
           spawnExplosion(enemy.x, enemy.y, enemy.color, 18);
-          score += enemy.points;
-          scoreElement.textContent = String(score);
-          if (score > best) {
-            best = score;
-            bestElement.textContent = String(best);
-            localStorage.setItem("plane-best", String(best));
-          }
+          addScore(enemy.points);
         }
         break;
       }
     }
   }
 
+  // 道具下落与拾取
+  powerUpTimer -= 1;
+  if (powerUpTimer <= 0) {
+    spawnPowerUp();
+    powerUpTimer = 240 + Math.random() * 240; // 每 4-8 秒一件
+  }
+  powerUps.forEach((powerUp) => {
+    powerUp.y += 1.6;
+    powerUp.x += Math.sin(frameCount * 0.04 + powerUp.phase) * 0.5;
+  });
+  powerUps = powerUps.filter((powerUp) => powerUp.y < height + 30);
+  for (const powerUp of [...powerUps]) {
+    if (Math.abs(powerUp.x - player.x) < 30 && Math.abs(powerUp.y - player.y) < 30) {
+      powerUps.splice(powerUps.indexOf(powerUp), 1);
+      applyPowerUp(powerUp);
+    }
+  }
+
+  // 后期还击：战斗机直射、轰炸机瞄准玩家
+  if (frameCount > enemyFireAfter) {
+    enemies.forEach((enemy) => {
+      if (!enemy.fireEvery) return;
+      enemy.fireCd -= 1;
+      if (enemy.fireCd <= 0 && enemy.y > 40 && enemy.y < height - 140) {
+        const speed = config.enemyBulletSpeed;
+        if (enemy.name === "bomber") {
+          const dx = player.x - enemy.x;
+          const dy = player.y - enemy.y;
+          const distance = Math.hypot(dx, dy) || 1;
+          enemyBullets.push({ x: enemy.x, y: enemy.y + enemy.height / 2, width: 3, height: 10, vx: (dx / distance) * speed, vy: (dy / distance) * speed });
+        } else {
+          enemyBullets.push({ x: enemy.x, y: enemy.y + enemy.height / 2, width: 3, height: 10, vx: 0, vy: speed });
+        }
+        enemy.fireCd = enemy.fireEvery + Math.random() * 40;
+      }
+    });
+  }
+  enemyBullets = enemyBullets.filter((bullet) => {
+    bullet.x += bullet.vx;
+    bullet.y += bullet.vy;
+    return bullet.y < height + 20 && bullet.x > -20 && bullet.x < width + 20;
+  });
+
   if (invincible > 0) invincible -= 1;
+  if (shield > 0) shield -= 1;
+
+  // 敌机撞玩家
   for (const enemy of [...enemies]) {
     if (invincible === 0 && collides(enemy, player)) {
       enemies.splice(enemies.indexOf(enemy), 1);
       spawnExplosion(enemy.x, enemy.y, enemy.color, 18);
-      lives -= 1;
-      if (lives <= 0) {
-        spawnExplosion(player.x, player.y, "#f1745f", 40);
-        state = "over";
-        showGameOver();
-        renderLives();
+      hitPlayer();
+      if (state === "over") break;
+    }
+  }
+
+  // 敌弹打中玩家
+  if (state === "running" && invincible === 0) {
+    for (const bullet of [...enemyBullets]) {
+      if (collides(bullet, player)) {
+        enemyBullets.splice(enemyBullets.indexOf(bullet), 1);
+        hitPlayer();
         break;
       }
-      invincible = 90;
-      renderLives();
     }
+  }
+}
+
+// 玩家受击：护盾挡一次，否则扣命
+function hitPlayer() {
+  if (shield > 0) {
+    shield = 0;
+    invincible = 45; // 护盾碎掉后 0.75 秒宽限
+    spawnExplosion(player.x, player.y, "#0e6b62", 16);
+    updateHud();
+    return;
+  }
+  lives -= 1;
+  renderLives();
+  if (lives <= 0) {
+    spawnExplosion(player.x, player.y, "#f1745f", 40);
+    state = "over";
+    showGameOver();
+  } else {
+    invincible = 90;
   }
 }
 
@@ -338,6 +494,26 @@ function draw() {
     context.fillRect(bullet.x - bullet.width / 2, bullet.y - bullet.height / 2, bullet.width, bullet.height);
   });
 
+  // 敌弹
+  context.fillStyle = "#f1745f";
+  enemyBullets.forEach((bullet) => {
+    context.fillRect(bullet.x - bullet.width / 2, bullet.y - bullet.height / 2, bullet.width, bullet.height);
+  });
+
+  // 道具
+  powerUps.forEach((powerUp) => {
+    const type = powerUpTypes.find((item) => item.name === powerUp.type);
+    context.fillStyle = type.color;
+    context.beginPath();
+    context.arc(powerUp.x, powerUp.y, 14, 0, Math.PI * 2);
+    context.fill();
+    context.fillStyle = type.text;
+    context.font = 'bold 14px "Noto Sans SC", sans-serif';
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(type.label, powerUp.x, powerUp.y + 1);
+  });
+
   // 敌机
   enemies.forEach((enemy) => {
     drawPlane(enemy.x, enemy.y, enemy.width, enemy.height, enemy.color);
@@ -363,6 +539,15 @@ function draw() {
     context.beginPath();
     context.arc(player.x, player.y - 4, 3, 0, Math.PI * 2);
     context.fill();
+  }
+
+  // 护盾光环
+  if (shield > 0) {
+    context.strokeStyle = `rgba(14, 107, 98, ${0.55 + 0.35 * Math.sin(frameCount * 0.15)})`;
+    context.lineWidth = 3;
+    context.beginPath();
+    context.arc(player.x, player.y, 27, 0, Math.PI * 2);
+    context.stroke();
   }
 }
 
